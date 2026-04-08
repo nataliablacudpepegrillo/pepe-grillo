@@ -15,26 +15,19 @@ export default async function handler(req) {
 
   const body = await req.json();
 
-  const messages = body.messages.map(m => ({ role: m.role, content: m.content }));
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
     },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'system', content: body.system }, ...messages],
-      max_tokens: 1000,
-    }),
+    body: JSON.stringify(body),
   });
 
   const data = await response.json();
 
-  const reply = data.choices?.[0]?.message?.content || 'Error al responder.';
-
-  return new Response(JSON.stringify({ content: [{ text: reply }] }), {
+  return new Response(JSON.stringify(data), {
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
